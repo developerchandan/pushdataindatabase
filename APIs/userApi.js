@@ -4,6 +4,10 @@ const userExpressApp=exp.Router();
 
 //body parsing
 userExpressApp.use(exp.json());
+//bcrypt module
+const bcrypt=require("bcrypt");
+//import jsonwebtoen
+const jwt = require('jsonwebtoken');
 
 //import monodb
 const mc=require("mongodb").MongoClient;
@@ -18,7 +22,7 @@ const dbUrl="mongodb://admin:admin@cluster0-shard-00-00-izra5.mongodb.net:27017,
     else
     {
     //connect to database
-    dbo=clientObj.db("empdb");
+    dbo=clientObj.db("usserdb");
     console.log("connected to db");
     }
 
@@ -29,12 +33,12 @@ userExpressApp.post('/register',(req,res)=>{
     // res.send({message:'registered successful'})
 
 // //insert obj of req.body into empcollection
-dbo.collection("empcollecion").insertOne(req.body,(err,result)=>{
+dbo.collection("usercollection").insertOne(req.body,(err,result)=>{
     if(err){
         console.log("err is insert",err);
     }
     else{
-        res.send({message:"emp created successfully"})
+        res.send({message:"user created successifully"})
     }
 })
 
@@ -53,7 +57,7 @@ dbo.collection("empcollecion").insertOne(req.body,(err,result)=>{
 userExpressApp.post('/register',(req, res)=>{
     console.log("data is ",req.body);
     //check for emp obj with received eno.
-    dbo.collection("empcollecion").findOne({name:req.body.name},(err,empObj)=>{
+    dbo.collection("usercollection").findOne({Passwoard:req.body.Passwoard},(err,empObj)=>{
         if(err)
         {
             console.log("err in find",err);
@@ -61,16 +65,34 @@ userExpressApp.post('/register',(req, res)=>{
         //if emp not existed
         else if(empObj==null)
         {
-            //insert req.body
-            dbo.collection("empcollecion").insertOne(req.body,(err,result)=>{
+            //hash user passwoard
+            bcrypt.hash(req.body.Passwoard,6,(err,hashedPasswoard)=>{
+                if(err){
+                    console.log("err in hash",err);
+                }
+                //replace plain passwoard with hash passwoard
+                
+                else
+                { 
+                    req.body.Passwoard=hashedPasswoard;
+                       //insert req.body
+            dbo.collection("usercollection").insertOne(req.body,(err,result)=>{
                 if(err)
                 {
                     console.log("err in insert",err);
                 }
                 else{
-                    res.send({message:"emp created successifully"});
+                    res.send({message:"user created successifully"});
                 }
             })
+                
+                }
+            })
+
+
+
+
+         
         }
         //if else already exist
         else{
@@ -78,6 +100,76 @@ userExpressApp.post('/register',(req, res)=>{
         }
     })
 })
+
+
+ 
+//************************************************************************************/
+//user login req handler
+userExpressApp.post('/login',(req,res)=>{
+    //compare username
+    dbo.collection("usercollection").findOne({username:req.body.username},(err,empObj)=>{
+   if(err){
+       console.log("err is read",err);
+   }
+   else if(empObj==null){
+       res.send({message:"invaild username"})
+   }
+   else{
+       //compare password
+       bcrypt.compare(rq.body.Passwoard,empObj,(err,isMatched)=>{
+           if(err){
+               if(err){
+                   console.log("err in compare",err);
+               }
+               else if(isMatched==false){
+                   //send res as wrong passwoard
+                   res.send({message:"invaild password"})
+               }
+               else{
+                   //generate jwt and sign it
+                   jwt.sign({username:empObj.username},"sshh",{expiresIn:60},(err,signedToken)=>{
+                       if(err){
+                           console.log("eee is sign",err)
+                       }
+                       else{
+                           res.send({message:signedToken})
+                       }
+                   })
+               }
+           }
+       })
+   }
+    })
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

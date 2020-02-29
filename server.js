@@ -5,7 +5,7 @@ const app=exp();
 //import path module
 const path=require("path");
 
-
+ 
 
 //connect with angular appto dist folder
 app.use(exp.static(path.join(__dirname,'./dist/angularApp')));

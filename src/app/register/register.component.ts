@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { RegisterService } from '../register.service';
+import { Router } from '@angular/router';
 
 
 @Component({
@@ -9,16 +10,25 @@ import { RegisterService } from '../register.service';
 })
 export class RegisterComponent  {
 
-  constructor(private rs: RegisterService) { }
+  constructor(private rs: RegisterService, private router: Router) { }
 
 
   submitData(userObj) {
     console.log(userObj);
+    // make a call to doRegister and subscribe the observable retuen by it
     this.rs.doRegister(userObj).subscribe((data) => {
-     // tslint:disable-next-line:align
+      console.log(data);
+      if (data['message']=="user created successifully") {
+          // tslint:disable-next-line:align
      alert(data["message"]);
-    // tslint:disable-next-line:semicolon
-    })
+     // tslint:disable-next-line:semicolon
+    // redurect to login page
+    this.router.navigate(['/login']);
+      }
+   else {
+     alert(data['message']);
+   }
+    });
 
   }
 }
